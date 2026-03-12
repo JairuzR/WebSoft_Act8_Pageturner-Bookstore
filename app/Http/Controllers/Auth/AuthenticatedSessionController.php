@@ -28,6 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Check if user has 2FA enabled
+        if ($request->user()->hasTwoFactorEnabled()) {
+            session(['2fa_required' => true]);
+            return redirect()->route('two-factor.challenge');
+        }
+
         return redirect()->intended(route('home', absolute: false));
     }
 

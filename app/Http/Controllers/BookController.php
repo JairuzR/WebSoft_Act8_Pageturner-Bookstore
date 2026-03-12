@@ -12,17 +12,17 @@ class BookController extends Controller
     {
         $query = Book::with('category');
         
-        // Filter by category if provided
-        if ($request->has('category')) {
+        // Filter by category only if a specific category is selected
+        if ($request->has('category') && $request->category != '') {
             $query->where('category_id', $request->category);
         }
         
-        // Search by title or author
-        if ($request->has('search')) {
+        // Search by title or author - this should work regardless of category filter
+        if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('author', 'like', "%{$search}%");
+                ->orWhere('author', 'like', "%{$search}%");
             });
         }
         
@@ -48,18 +48,19 @@ class BookController extends Controller
             'price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'description' => 'nullable|string',
-            'cover_image' => 'nullable|image|max:2048',
+            'cover_image' => 'nullable|image|max:2048', // 2MB max
         ]);
 
         if ($request->hasFile('cover_image')) {
-            $validated['cover_image'] = $request->file('cover_image')
-                                                ->store('covers', 'public');
+            // Store in public disk, covers directory
+            $path = $request->file('cover_image')->store('covers', 'public');
+            $validated['cover_image'] = $path;
         }
 
         Book::create($validated);
 
         return redirect()->route('books.index')
-                         ->with('success', 'Book added successfully!');
+            ->with('success', 'Book added successfully!');
     }
 
     public function show(Book $book)
