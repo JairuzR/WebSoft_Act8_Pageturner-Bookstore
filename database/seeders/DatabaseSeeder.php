@@ -26,50 +26,15 @@ class DatabaseSeeder extends Seeder
             User::factory(10)->create(['role' => 'customer']);
         }
 
-        // Get all users (customers only)
-        $customers = User::where('role', 'customer')->get();
-        
-        // Create categories if none exist
+        // Create categories if none exist (needed before mass book seeding)
         if (Category::count() == 0) {
-            $categories = Category::factory(8)->create();
-        } else {
-            $categories = Category::all();
+            Category::factory(20)->create(); // Increase to 20 categories for variety
         }
 
-        // Create books for each category if few books exist
-        if (Book::count() < 10) {
-            foreach ($categories as $category) {
-                Book::factory(5)->create(['category_id' => $category->id]);
-            }
-        }
+        // Now run the 1M book seeder (chunked, memory-safe)
+        $this->call(MassBookSeeder::class);
 
-        // Get all books
-        $books = Book::all();
-        
-        // Create reviews - avoid duplicates
-        if (Review::count() == 0 && $customers->count() > 0 && $books->count() > 0) {
-            // Track which user-book combinations we've used
-            $usedCombinations = [];
-            
-            foreach ($books as $book) {
-                // Random number of reviews per book (0-5)
-                $reviewCount = fake()->numberBetween(0, min(5, $customers->count()));
-                
-                for ($i = 0; $i < $reviewCount; $i++) {
-                    // Pick a random customer
-                    $user = $customers->random();
-                    $key = $user->id . '-' . $book->id;
-                    
-                    // Check if this user has already reviewed this book
-                    if (!in_array($key, $usedCombinations)) {
-                        Review::factory()->create([
-                            'user_id' => $user->id,
-                            'book_id' => $book->id,
-                        ]);
-                        $usedCombinations[] = $key;
-                    }
-                }
-            }
-        }
+        // Optionally seed reviews after mass seeding (but be careful with time)
+        // You can skip reviews for now or run a separate lightweight review seeder later.
     }
 }

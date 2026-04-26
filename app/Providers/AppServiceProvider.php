@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Book;
+use App\Observers\BookObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -16,6 +18,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Book::observe(BookObserver::class);
+        
         // Per-second API rate limiting with user tiers
         RateLimiter::for('api', function (Request $request) {
             $user = $request->user();

@@ -6,11 +6,28 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
+use Laravel\Scout\Searchable;
 
 class Book extends Model implements Auditable
 {
-    use HasFactory;
-    use AuditableTrait;
+    use HasFactory, AuditableTrait, Searchable;
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id'          => $this->id,
+            'title'       => $this->title,
+            'author'      => $this->author,
+            'publisher'   => $this->publisher,
+            'description' => $this->description,
+            'format'      => $this->format,
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return $this->is_active;
+    }
 
     protected $fillable = [
         'category_id',
