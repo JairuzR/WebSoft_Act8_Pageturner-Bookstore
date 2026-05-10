@@ -10,20 +10,20 @@ return new class extends Migration
     {
         Schema::disableForeignKeyConstraints();
 
-        // 1. Drop the unique isbn index (can be dropped anytime)
-        $hasUniqueIsbn = DB::selectOne("SELECT COUNT(*) as cnt FROM information_schema.STATISTICS WHERE TABLE_NAME = 'books' AND INDEX_NAME = 'books_isbn_unique'");
+        // 1. Drop the unique isbn index
+        $hasUniqueIsbn = DB::selectOne("SELECT COUNT(*) as cnt FROM information_schema.STATISTICS WHERE TABLE_NAME = 'books' AND INDEX_NAME = 'books_isbn_unique' AND TABLE_SCHEMA = DATABASE()");
         if ($hasUniqueIsbn->cnt > 0) {
             DB::statement('ALTER TABLE books DROP INDEX books_isbn_unique');
         }
 
-        // 2. Drop the primary key FIRST (before touching AUTO_INCREMENT)
-        $hasPrimaryKey = DB::selectOne("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = 'books' AND CONSTRAINT_TYPE = 'PRIMARY KEY'");
+        // 2. Remove AUTO_INCREMENT FIRST before dropping primary key
+        DB::statement('ALTER TABLE books MODIFY id BIGINT UNSIGNED NOT NULL');
+
+        // 3. Now safe to drop the primary key
+        $hasPrimaryKey = DB::selectOne("SELECT COUNT(*) as cnt FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME = 'books' AND CONSTRAINT_TYPE = 'PRIMARY KEY' AND TABLE_SCHEMA = DATABASE()");
         if ($hasPrimaryKey->cnt > 0) {
             DB::statement('ALTER TABLE books DROP PRIMARY KEY');
         }
-
-        // 3. Now safe to remove AUTO_INCREMENT
-        DB::statement('ALTER TABLE books MODIFY id BIGINT UNSIGNED NOT NULL');
 
         // 4. Add composite primary key
         DB::statement('ALTER TABLE books ADD PRIMARY KEY books_id_published_at_primary (id, published_at)');

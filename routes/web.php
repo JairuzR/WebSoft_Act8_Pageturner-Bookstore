@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DataPortabilityController;
 use App\Http\Controllers\Admin\AuditLogController;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\ReviewAnalysisController;
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -118,6 +119,11 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Audit Logs
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::get('/audit-logs/{audit}', [AuditLogController::class, 'show'])->name('audit-logs.show');
+
+    Route::post('/books/{book}/analyze-reviews', [ReviewAnalysisController::class, 'analyze'])
+        ->name('books.analyze-reviews');
+    Route::get('/ai-dashboard', [ReviewAnalysisController::class, 'usageDashboard'])
+        ->name('ai-dashboard');
 });
 
 require __DIR__.'/auth.php';

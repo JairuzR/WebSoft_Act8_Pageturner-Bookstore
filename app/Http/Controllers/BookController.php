@@ -65,7 +65,7 @@ class BookController extends Controller
 
     public function show(Book $book)
     {
-        $book->load(['category', 'reviews.user']);
+        $book->load(['category', 'reviews.user', 'aiAnalysis']);
         return view('books.show', compact('book'));
     }
 

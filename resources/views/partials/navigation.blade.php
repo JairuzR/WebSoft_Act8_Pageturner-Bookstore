@@ -33,6 +33,13 @@
                             <a href="{{ route('admin.categories.create') }}" class="hover:bg-brown-700 px-3 py-2 rounded-md">
                                 Add Category
                             </a>
+                            @auth
+                                @if(auth()->user()->isAdmin())
+                                    <a href="{{ route('admin.ai-dashboard') }}" class="hover:bg-brown-700 px-3 py-2 rounded-md">
+                                        AI Dashboard
+                                    </a>
+                                @endif
+                            @endauth
                         @endif
                     @endauth
                 </div>

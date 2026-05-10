@@ -9,7 +9,7 @@ use Carbon\Carbon;
 class MassBookSeeder extends Seeder
 {
     private const CHUNK_SIZE = 500;          // smaller chunk for lower peak memory
-    private const TOTAL_RECORDS = 1000000;
+    private const TOTAL_RECORDS = 20;   // Originally 1000000, using only 20 for smaller dataset
 
     public function run(): void
     {

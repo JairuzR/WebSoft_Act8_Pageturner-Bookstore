@@ -212,4 +212,106 @@
             </x-alert>
         @endforelse
     </div>
+{{-- AI Review Analysis Section --}}
+    @if($book->aiAnalysis)
+        @php $analysis = $book->aiAnalysis; @endphp
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    AI Review Analysis
+                    <span class="text-xs font-normal text-gray-400 ml-1">via {{ ucfirst($analysis->provider_used) }}</span>
+                </h3>
+                @auth
+                    @if(auth()->user()->isAdmin())
+                        <form action="{{ route('admin.books.analyze-reviews', $book) }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition">
+                                Re-analyze
+                            </button>
+                        </form>
+                    @endif
+                @endauth
+            </div>
+
+            {{-- Sentiment Badge --}}
+            <div class="flex items-center gap-3 mb-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                    @if($analysis->overall_sentiment === 'positive') bg-green-100 text-green-800
+                    @elseif($analysis->overall_sentiment === 'negative') bg-red-100 text-red-800
+                    @elseif($analysis->overall_sentiment === 'mixed') bg-yellow-100 text-yellow-800
+                    @else bg-gray-100 text-gray-800 @endif">
+                    {{ ucfirst($analysis->overall_sentiment) }} Sentiment
+                </span>
+                <p class="text-xs text-gray-400">
+                    Based on {{ $analysis->reviews_analyzed }} review(s)
+                    &bull;
+                    Score: {{ number_format($analysis->sentiment_score * 100, 0) }}%
+                </p>
+            </div>
+
+            {{-- Summary --}}
+            <p class="text-gray-700 text-sm leading-relaxed mb-4">{{ $analysis->summary }}</p>
+
+            {{-- Sentiment Breakdown --}}
+            @if($analysis->sentiment_breakdown)
+                @php $breakdown = $analysis->sentiment_breakdown; @endphp
+                <div class="mb-4">
+                    <p class="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Sentiment Breakdown</p>
+                    <div class="flex rounded-full overflow-hidden h-3">
+                        @if(($breakdown['positive'] ?? 0) > 0)
+                            <div class="bg-green-400 h-full" style="width: {{ $breakdown['positive'] }}%"
+                                 title="Positive: {{ $breakdown['positive'] }}%"></div>
+                        @endif
+                        @if(($breakdown['neutral'] ?? 0) > 0)
+                            <div class="bg-gray-300 h-full" style="width: {{ $breakdown['neutral'] }}%"
+                                 title="Neutral: {{ $breakdown['neutral'] }}%"></div>
+                        @endif
+                        @if(($breakdown['negative'] ?? 0) > 0)
+                            <div class="bg-red-400 h-full" style="width: {{ $breakdown['negative'] }}%"
+                                 title="Negative: {{ $breakdown['negative'] }}%"></div>
+                        @endif
+                    </div>
+                    <div class="flex gap-4 mt-1 text-xs text-gray-500">
+                        <span>Positive: {{ $breakdown['positive'] ?? 0 }}%</span>
+                        <span>Neutral: {{ $breakdown['neutral'] ?? 0 }}%</span>
+                        <span>Negative: {{ $breakdown['negative'] ?? 0 }}%</span>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Key Themes --}}
+            @if($analysis->key_themes && count($analysis->key_themes) > 0)
+                <div>
+                    <p class="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Key Themes</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($analysis->key_themes as $theme)
+                            <span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-full">
+                                {{ $theme }}
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <p class="text-xs text-gray-400 mt-4">Last analyzed: {{ $analysis->updated_at->diffForHumans() }}</p>
+        </div>
+
+    @elseif(auth()->check() && auth()->user()->isAdmin())
+        <div class="bg-white rounded-lg shadow p-6 mt-6 border-2 border-dashed border-gray-200 text-center">
+            <p class="text-gray-500 mb-3">No AI analysis available for this book's reviews.</p>
+            @if($book->reviews->count() > 0)
+                <form action="{{ route('admin.books.analyze-reviews', $book) }}" method="POST">
+                    @csrf
+                    <button type="submit"
+                        class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
+                        Generate AI Analysis
+                    </button>
+                </form>
+            @else
+                <p class="text-xs text-gray-400">Add some reviews first to enable analysis.</p>
+            @endif
+        </div>
+    @endif
+
 @endsection

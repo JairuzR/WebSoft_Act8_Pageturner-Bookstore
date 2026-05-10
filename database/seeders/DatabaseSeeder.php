@@ -28,13 +28,13 @@ class DatabaseSeeder extends Seeder
 
         // Create categories if none exist (needed before mass book seeding)
         if (Category::count() == 0) {
-            Category::factory(20)->create(); // Increase to 20 categories for variety
+            Category::factory(10)->create(); // Increased to 10 categories for variety
         }
 
         // Now run the 1M book seeder (chunked, memory-safe)
         $this->call(MassBookSeeder::class);
 
-        // Optionally seed reviews after mass seeding (but be careful with time)
-        // You can skip reviews for now or run a separate lightweight review seeder later.
+        // Seed reviews after books and users are ready
+        $this->call(ReviewSeeder::class);
     }
 }

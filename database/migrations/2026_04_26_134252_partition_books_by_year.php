@@ -7,9 +7,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 
-        DB::statement("ALTER TABLE books
+        // MySQL does not support foreign keys on partitioned tables at all.
+        // We permanently drop them before partitioning.
+        DB::unprepared('ALTER TABLE order_items DROP FOREIGN KEY order_items_book_id_foreign');
+        DB::unprepared('ALTER TABLE reviews DROP FOREIGN KEY reviews_book_id_foreign');
+        DB::unprepared('ALTER TABLE books DROP FOREIGN KEY books_category_id_foreign');
+
+        // Apply partitioning
+        DB::unprepared("ALTER TABLE books
             PARTITION BY RANGE (YEAR(published_at)) (
                 PARTITION p_old VALUES LESS THAN (2000),
                 PARTITION p_2000 VALUES LESS THAN (2005),
@@ -20,13 +27,13 @@ return new class extends Migration
                 PARTITION p_future VALUES LESS THAN MAXVALUE
             )");
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=1');
     }
 
     public function down(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        DB::statement('ALTER TABLE books REMOVE PARTITIONING');
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        DB::unprepared('ALTER TABLE books REMOVE PARTITIONING');
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=1');
     }
 };

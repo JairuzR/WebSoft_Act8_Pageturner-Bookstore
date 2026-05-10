@@ -59,4 +59,9 @@ class Book extends Model implements Auditable
     {
         return $this->reviews()->avg('rating') ?? 0;
     }
+
+    public function aiAnalysis()
+    {
+        return $this->hasOne(AiReviewAnalysis::class)->latest();
+    }
 }
