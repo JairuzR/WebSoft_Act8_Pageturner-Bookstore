@@ -1,6 +1,6 @@
 # PageTurner Online Bookstore Management System
 
-## Laboratory Activity 8 — AI Review Summarization & Sentiment Analysis
+## Laboratory Activity 8 - AI Review Summarization & Sentiment Analysis
 
 ---
 
@@ -13,7 +13,7 @@ Before starting, make sure you have the following installed:
 - Node.js & npm
 - MySQL
 - XAMPP (or any local server)
-- Ollama — download from [ollama.com](https://ollama.com)
+- Ollama - download from [ollama.com](https://ollama.com)
 
 ---
 
@@ -134,19 +134,19 @@ ollama pull llama3.2
 
 You need **3 terminals** running at the same time:
 
-**Terminal 1 — Web server:**
+**Terminal 1 - Web server:**
 
 ```bash
 php artisan serve
 ```
 
-**Terminal 2 — Queue worker (required for AI jobs):**
+**Terminal 2 - Queue worker (required for AI jobs):**
 
 ```bash
 php artisan queue:work --queue=ai-tasks,default
 ```
 
-**Terminal 3 — Ollama (AI fallback):**
+**Terminal 3 - Ollama (AI fallback):**
 Ollama usually starts automatically. Verify it's running by visiting:
 http://localhost:11434
 If it shows `Ollama is running`, you're good. If not:
@@ -171,9 +171,9 @@ Password: password
 
 1. Log in as admin
 2. Go to any book page that has reviews
-3. Scroll to the bottom — you will see a **"Generate AI Analysis"** button
+3. Scroll to the bottom - you will see a **"Generate AI Analysis"** button
 4. Click it and wait a few seconds
-5. Refresh the page — the AI sentiment card will appear showing:
+5. Refresh the page - the AI sentiment card will appear showing:
     - Overall sentiment (Positive / Negative / Neutral / Mixed)
     - Sentiment score
     - Summary of reviews
@@ -226,23 +226,27 @@ php artisan cache:clear
 
 ## Project Structure (AI-related files)
 
-app/
-├── Services/
-│ ├── AIServiceManager.php # Handles Gemini + Ollama with fallback
-│ └── ReviewAnalysisService.php # Builds prompts and parses AI responses
-├── Jobs/
-│ └── AnalyzeBookReviews.php # Queue job for async AI processing
-├── Models/
-│ ├── AiReviewAnalysis.php # Stores analysis results
-│ └── AiUsageLog.php # Tracks API usage per provider
-├── Http/Controllers/
-│ └── ReviewAnalysisController.php # Triggers analysis, shows dashboard
-database/
-├── migrations/
-│ ├── ...\_create_ai_review_analyses_table.php
-│ └── ...\_create_ai_usage_logs_table.php
-config/
-└── ai.php # AI provider configuration
-resources/views/
-├── books/show.blade.php # Displays AI sentiment card
-└── admin/ai-dashboard.blade.php # Admin usage dashboard
+### New files added for Lab Activity 8
+
+**App Layer**
+
+- `app/Services/AIServiceManager.php` - Handles Gemini + Ollama with automatic fallback
+- `app/Services/ReviewAnalysisService.php` - Builds prompts and parses AI responses
+- `app/Jobs/AnalyzeBookReviews.php` - Queue job for async AI processing
+- `app/Models/AiReviewAnalysis.php` - Stores analysis results per book
+- `app/Models/AiUsageLog.php` - Tracks API usage and cost per provider
+- `app/Http/Controllers/ReviewAnalysisController.php` - Triggers analysis and shows admin dashboard
+
+**Database**
+
+- `database/migrations/2026_05_11_000001_create_ai_review_analyses_table.php`
+- `database/migrations/2026_05_11_000002_create_ai_usage_logs_table.php`
+
+**Config**
+
+- `config/ai.php` - AI provider configuration (keys, models, fallback chain)
+
+**Views**
+
+- `resources/views/books/show.blade.php` - Updated to display AI sentiment card
+- `resources/views/admin/ai-dashboard.blade.php` - New admin AI usage dashboard
