@@ -92,23 +92,28 @@ Rules:
 - sentiment_breakdown values must be integers that add up to 100
 - key_themes must be 2 to 5 short phrases (max 4 words each)
 - Return ONLY the JSON object, nothing else
+CRITICAL: Your entire response must be a single valid JSON object. No text before or after. No explanation. Just the JSON.
 PROMPT;
-    }
+}
 
     private function parseResponse(string $rawText): array
     {
-        // Strip any accidental markdown code fences
+        // Strip markdown code fences
         $clean = preg_replace('/```(?:json)?\s*|\s*```/', '', $rawText);
         $clean = trim($clean);
 
+        // Try to extract JSON object if there's extra text around it
+        if (preg_match('/\{.*\}/s', $clean, $matches)) {
+            $clean = $matches[0];
+        }
+
         $data = json_decode($clean, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (json_last_error() !== JSON_ERROR_NONE || empty($data)) {
             Log::error('AI review analysis JSON parse failed', [
                 'raw'   => $rawText,
                 'error' => json_last_error_msg(),
             ]);
-            // Return a safe fallback structure so the job doesn't fail hard
             return [
                 'summary'             => 'Analysis could not be parsed. Please try again.',
                 'overall_sentiment'   => 'neutral',
@@ -118,10 +123,9 @@ PROMPT;
             ];
         }
 
-        // Sanitize and validate
         $validSentiments = ['positive', 'negative', 'neutral', 'mixed'];
-        $sentiment       = in_array($data['overall_sentiment'] ?? '', $validSentiments)
-            ? $data['overall_sentiment']
+        $sentiment = in_array(strtolower($data['overall_sentiment'] ?? ''), $validSentiments)
+            ? strtolower($data['overall_sentiment'])
             : 'neutral';
 
         return [
